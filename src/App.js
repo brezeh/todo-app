@@ -13,14 +13,22 @@ const { todos } = Db
 const App = () => {
   const allItems = useLiveQuery(() => todos.toArray(), [])
 
+  const completedTasks = allItems?.filter(item => item.completed).length || 0
+  const totalTasks = allItems?.length || 0
+  const completionPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
+
   const addTask = async (event) => {
     event.preventDefault()
     const taskField = document.querySelector("#taskInput")
 
-    await todos.add({
-      task: taskField['value'],
+    const task = taskField['value']
+
+    const id = await todos.add({
+      task: task,
       completed: false
     })
+
+    console.log(`todos ${task} sucessfully added. Got id ${id}`)
 
     taskField['value'] = ''
   } 
@@ -34,6 +42,18 @@ const App = () => {
   return (
     <div className="container">
       <h3 className="teal-text center-align">Todo App</h3>
+      <div className="completion-status">
+        <p className="center-align"> {`Completed ${completedTasks} / ${totalTasks} tasks`}</p>
+        <p className="center-align"> {`Completion: ${completionPercentage.toFixed(2)}%`}</p>
+      </div>
+      <div className="circle-container center-align">
+        <div
+          className="task-circle"
+          style={{
+            background: `conic-gradient(#4CAF50 ${completionPercentage}%, #eeeeee ${completionPercentage}%)`
+          }}
+        ></div>
+      </div>
       <form className="add-item-form" onSubmit={addTask}>
         <input
           type="text"
